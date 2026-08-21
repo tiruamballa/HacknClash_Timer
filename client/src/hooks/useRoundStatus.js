@@ -26,12 +26,53 @@ export function useRoundStatus() {
   const timerRef = useRef(null);
 
   const updateData = useCallback((newData) => {
-    if (newData && newData.status === 'READY') {
+    if (!newData) return;
+
+    // 1. Explicit RESET action from admin
+    if (newData.action === 'RESET') {
       localStorage.removeItem('hnv_cached_live_state');
-    } else if (newData && newData.status === 'LIVE') {
-      localStorage.setItem('hnv_cached_live_state', JSON.stringify(newData));
+      setDataState({
+        status: 'READY',
+        startedAt: null,
+        endsAt: newData.endsAt || null,
+        serverTime: newData.serverTime || null,
+      });
+      return;
     }
-    setDataState(newData);
+
+    // 2. LIVE status received
+    if (newData.status === 'LIVE') {
+      localStorage.setItem('hnv_cached_live_state', JSON.stringify({
+        status: 'LIVE',
+        startedAt: newData.startedAt,
+        endsAt: newData.endsAt,
+      }));
+      setDataState(newData);
+      return;
+    }
+
+    // 3. READY status received from server poll (e.g. serverless cold start on Vercel)
+    if (newData.status === 'READY') {
+      const cached = localStorage.getItem('hnv_cached_live_state');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.status === 'LIVE' && parsed.endsAt && new Date(parsed.endsAt).getTime() > Date.now()) {
+            // Keep LIVE state on client unless an explicit RESET action occurred
+            setDataState((prev) => ({
+              ...prev,
+              status: 'LIVE',
+              startedAt: parsed.startedAt,
+              endsAt: parsed.endsAt,
+              serverTime: newData.serverTime || prev.serverTime,
+            }));
+            return;
+          }
+        } catch (e) {}
+      }
+      localStorage.removeItem('hnv_cached_live_state');
+      setDataState(newData);
+    }
   }, []);
 
   const fetchStatus = useCallback(async (isSilent = false) => {
@@ -42,10 +83,6 @@ export function useRoundStatus() {
       setIsOffline(false);
       backoffRef.current = 1000; // Reset backoff on successful API contact
 
-      // Server status is authoritative!
-      if (response.status === 'READY') {
-        localStorage.removeItem('hnv_cached_live_state');
-      }
       updateData(response);
 
       // Schedule next standard poll
@@ -81,12 +118,9 @@ export function useRoundStatus() {
       eventSource.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
-          if (parsed && parsed.status) {
+          if (parsed && (parsed.status || parsed.action)) {
             setError(null);
             setIsOffline(false);
-            if (parsed.status === 'READY') {
-              localStorage.removeItem('hnv_cached_live_state');
-            }
             updateData(parsed);
           }
         } catch (e) {

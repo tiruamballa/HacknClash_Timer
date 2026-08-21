@@ -115,7 +115,20 @@ async function readState() {
       return { ...defaultState, ...parsed };
     }
   } catch (err) {
-    // If file doesn't exist, try initializing DB file
+    // On serverless Vercel cold-start, try reading template db.json from server directory
+    try {
+      const templatePath = path.join(__dirname, 'data', 'db.json');
+      const content = await fs.readFile(templatePath, 'utf8');
+      const parsed = JSON.parse(content);
+      if (parsed) {
+        memoryStateCache = parsed;
+        return { ...defaultState, ...parsed };
+      }
+    } catch (templateErr) {
+      // Ignore template fallback error
+    }
+
+    // Initialize DB file in target DATA_DIR
     try {
       await fs.writeFile(DB_PATH, JSON.stringify(defaultState, null, 2), 'utf8');
     } catch (writeErr) {
@@ -243,10 +256,11 @@ function authenticateAdmin(req, res, next) {
 // In-memory active SSE client connections for instant multi-device real-time sync
 const sseClients = new Set();
 
-function broadcastStateChange(updatedState) {
+function broadcastStateChange(updatedState, actionName = 'UPDATE') {
   const now = new Date();
   const status = computeStatus(updatedState, now);
   const payload = JSON.stringify({
+    action: actionName,
     status,
     startedAt: updatedState.startedAt,
     endsAt: updatedState.endsAt,
@@ -346,9 +360,10 @@ app.post('/api/round/start', async (req, res) => {
     );
 
     // Broadcast instant real-time update to all connected guest & admin screens
-    broadcastStateChange(updated);
+    broadcastStateChange(updated, 'START');
 
     res.json({
+      action: 'START',
       status: 'LIVE',
       startedAt: updated.startedAt,
       endsAt: updated.endsAt,
@@ -405,9 +420,10 @@ app.post('/api/admin/reset', authenticateAdmin, async (req, res) => {
     );
 
     // Broadcast instant real-time reset to all connected screens
-    broadcastStateChange(updated);
+    broadcastStateChange(updated, 'RESET');
 
     res.json({
+      action: 'RESET',
       status: 'READY',
       startedAt: updated.startedAt,
       endsAt: updated.endsAt,
