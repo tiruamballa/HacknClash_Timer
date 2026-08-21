@@ -142,7 +142,7 @@ export function FlipDigit({
     <div className="flex flex-col items-center select-none">
       {/* 3D Flip Card Container */}
       <div 
-        className={`relative w-12 sm:w-20 md:w-24 h-16 sm:h-26 md:h-28 bg-[#101012] border sm:border-2 rounded-lg sm:rounded-xl shadow-xl sm:shadow-2xl overflow-hidden ${borderAccentClass}`}
+        className={`relative w-13 sm:w-20 md:w-24 h-17 sm:h-26 md:h-28 bg-[#101012] border border-black/80 sm:border-2 rounded-xl shadow-xl sm:shadow-2xl overflow-hidden ${borderAccentClass}`}
         style={{ perspective: '400px' }}
       >
         {/* Ambient background gradient */}

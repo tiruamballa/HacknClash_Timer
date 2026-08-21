@@ -77,11 +77,14 @@ async function writeAuditLog(action, operator = 'SYSTEM') {
 const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
-// Helper to read state safely (Cloud KV -> Local FS fallback)
+// In-process global memory cache for serverless container warm state
+let memoryStateCache = null;
+
+// Helper to read state safely (Cloud KV -> Local FS -> Memory fallback)
 async function readState() {
   const defaultState = {
-    startedAt: null,
-    endsAt: DEFAULT_ENDS_AT,
+    startedAt: memoryStateCache ? memoryStateCache.startedAt : null,
+    endsAt: memoryStateCache ? (memoryStateCache.endsAt || DEFAULT_ENDS_AT) : DEFAULT_ENDS_AT,
   };
 
   // 1. Try reading from Cloud KV if configured
@@ -93,7 +96,10 @@ async function readState() {
       const data = await res.json();
       if (data && data.result) {
         const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-        return { ...defaultState, ...parsed };
+        if (parsed) {
+          memoryStateCache = parsed;
+          return { ...defaultState, ...parsed };
+        }
       }
     } catch (err) {
       console.error('[KV READ ERROR]', err.message);
@@ -103,7 +109,11 @@ async function readState() {
   // 2. Fallback to reading from local filesystem / container cache
   try {
     const content = await fs.readFile(DB_PATH, 'utf8');
-    return { ...defaultState, ...JSON.parse(content) };
+    const parsed = JSON.parse(content);
+    if (parsed && parsed.startedAt) {
+      memoryStateCache = parsed;
+    }
+    return { ...defaultState, ...parsed };
   } catch (err) {
     // If file doesn't exist, try initializing DB file
     try {
@@ -115,11 +125,12 @@ async function readState() {
   }
 }
 
-// Helper to mutate state atomically across Cloud KV and local FS
+// Helper to mutate state atomically across Cloud KV, memory, and local FS
 async function mutateState(updater, action, operator) {
   return dbMutex.enqueue(async () => {
     const state = await readState();
     const updatedState = updater(state);
+    memoryStateCache = updatedState;
 
     // 1. Persist to Cloud KV if configured
     if (KV_URL && KV_TOKEN) {

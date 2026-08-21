@@ -25,15 +25,15 @@ export function EventBranding({ size = 'large' }) {
         shadow-lg sm:shadow-xl">
 
         {/* Three Logos Layout (Always single horizontal row on all devices) */}
-        <div className="w-full flex flex-row items-center justify-between gap-1.5 sm:gap-5">
+        <div className="w-full flex flex-row items-center justify-between gap-2 sm:gap-5">
 
           {/* IIC - LEFT */}
           <div className="flex items-center justify-start flex-shrink-0">
-            <div className="h-10 w-10 sm:h-16 sm:w-16 md:h-18 md:w-18
-              rounded-lg sm:rounded-2xl
+            <div className="h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20
+              rounded-xl sm:rounded-2xl
               overflow-hidden
               border border-cyber-border
-              shadow-sm sm:shadow-md
+              shadow-md
               flex items-center justify-center
               bg-white
               p-1 sm:p-2
@@ -48,31 +48,31 @@ export function EventBranding({ size = 'large' }) {
 
           {/* SRKR - CENTER (COLLEGE LOGO + TEXT) */}
           <div className="flex justify-center items-center flex-1 min-w-0">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-3.5 bg-cyber-accent/5 px-2 sm:px-3.5 py-1 sm:py-2.5 rounded-lg sm:rounded-2xl border border-cyber-accent/15 max-w-full overflow-hidden">
+            <div className="flex flex-row items-center gap-2 sm:gap-3.5 bg-cyber-accent/5 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-cyber-accent/15 max-w-full overflow-hidden">
               {/* College Logo */}
-              <div className="h-10 w-10 sm:h-18 sm:w-18 md:h-22 md:w-22
-                rounded-lg sm:rounded-2xl
+              <div className="h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24
+                rounded-xl sm:rounded-2xl
                 overflow-hidden
-                border sm:border-2 border-cyber-accent/30
-                shadow-sm sm:shadow-lg
+                border-2 border-cyber-accent/30
+                shadow-md sm:shadow-lg
                 flex items-center justify-center
                 bg-white
-                p-0.5 sm:p-1.5
-                ring-1 sm:ring-4 ring-cyber-accent/10
+                p-1 sm:p-1.5
+                ring-2 sm:ring-4 ring-cyber-accent/10
                 flex-shrink-0">
                 <img
                   src={srkrLogo}
                   alt="SRKR Engineering College Logo"
-                  className="h-full w-full object-contain rounded sm:rounded-xl"
+                  className="h-full w-full object-contain rounded-md sm:rounded-xl"
                 />
               </div>
 
               {/* Text Beside College Logo */}
               <div className="text-left select-none min-w-0">
-                <h2 className="text-xs sm:text-xl md:text-2xl font-extrabold tracking-wide font-display text-cyber-ink leading-tight truncate">
+                <h2 className="text-sm sm:text-xl md:text-2xl font-extrabold tracking-wide font-display text-cyber-ink leading-tight truncate">
                   SRKR
                 </h2>
-                <p className="text-[8px] sm:text-xs md:text-sm font-bold text-cyber-accent tracking-wide uppercase truncate">
+                <p className="text-[9px] sm:text-xs md:text-sm font-bold text-cyber-accent tracking-wide uppercase truncate">
                   ENGINEERING COLLEGE
                 </p>
                 <p className="hidden sm:block text-[9px] sm:text-[11px] text-cyber-muted font-medium font-sans truncate">
@@ -84,15 +84,15 @@ export function EventBranding({ size = 'large' }) {
 
           {/* CSI - RIGHT */}
           <div className="flex items-center justify-end flex-shrink-0">
-            <div className="h-10 w-10 sm:h-18 sm:w-18 md:h-22 md:w-22
-              rounded-lg sm:rounded-2xl
+            <div className="h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24
+              rounded-xl sm:rounded-2xl
               overflow-hidden
-              border sm:border-2 border-cyber-border
-              shadow-sm sm:shadow-lg
+              border-2 border-cyber-border
+              shadow-md sm:shadow-lg
               flex items-center justify-center
               bg-white
-              p-0.5 sm:p-1.5
-              ring-1 sm:ring-2 ring-cyber-accent/10
+              p-1 sm:p-1.5
+              ring-2 ring-cyber-accent/10
               transition-all duration-300">
               <img
                 src={csiLogo}
