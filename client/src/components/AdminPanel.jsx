@@ -29,9 +29,8 @@ export function AdminPanel({ isOpen, onClose, status, startedAt, endsAt, onState
     setErrorMsg('');
     setSuccessMsg('');
     try {
-      const data = await api.startRound();
-      onStateChange(data);
-      setSuccessMsg('Round 1 is now LIVE!');
+      onClose(); // Close panel immediately so Admin sees the launch page & falling star sequence!
+      onStateChange({ triggerLaunch: true });
     } catch (err) {
       setErrorMsg(err.message || 'Failed to start round');
     } finally {
@@ -181,19 +180,19 @@ export function AdminPanel({ isOpen, onClose, status, startedAt, endsAt, onState
 
             {/* State Management Buttons */}
             <div className="space-y-3 border-t border-cyber-border pt-6">
-              {/* Start Button */}
+              {/* Start Button inside Admin Panel */}
               {status === 'READY' && (
                 <button
                   onClick={handleStartRound}
                   disabled={actionLoading !== null}
-                  className="w-full py-3 bg-cyber-live hover:bg-rose-700 active:scale-[0.98] text-white text-sm font-bold tracking-widest uppercase rounded-lg transition-all shadow-lg hover:shadow-rose-600/20 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 active:scale-[0.98] text-white text-sm font-bold tracking-widest uppercase rounded-xl transition-all shadow-xl hover:shadow-indigo-600/30 flex items-center justify-center gap-2 cursor-pointer border border-indigo-400/30"
                 >
                   {actionLoading === 'start' ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                   ) : (
                     <>
                       <Play className="w-4 h-4 fill-white" />
-                      <span>START ROUND 1 LIVE</span>
+                      <span>START INAUGURATION (ALL DEVICES)</span>
                     </>
                   )}
                 </button>

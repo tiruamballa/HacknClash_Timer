@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRoundStatus } from './hooks/useRoundStatus';
 import { useServerTime } from './hooks/useServerTime';
 import { api } from './services/api';
@@ -10,6 +10,7 @@ import { AdminLogin } from './components/AdminLogin';
 import { AdminPanel } from './components/AdminPanel';
 import { Settings, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { playRiserAndBoom } from './utils/audio';
 
 function App() {
   const { status, startedAt, endsAt, serverTime, loading, error, isOffline, refetch, setData } = useRoundStatus();
@@ -19,11 +20,9 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [hasPlayedInauguration, setHasPlayedInauguration] = useState(false);
 
   // Drives the single, app-wide space canvas: 'idle' | 'charging' | 'shockwave' | 'error'.
-  // Lifted up from LaunchScreen so the same solar-system scene (sun, orbiting
-  // planets, starfield) persists behind the countdown and ended screens too,
-  // instead of the space theme disappearing once Round 1 goes live.
   const [ignitionStage, setIgnitionStage] = useState('idle');
 
   // Check admin session validation on startup
@@ -34,6 +33,51 @@ function App() {
     };
     checkSession();
   }, []);
+
+  // Multi-device synchronized star falling inauguration trigger
+  useEffect(() => {
+    if (status === 'READY') {
+      setHasPlayedInauguration(false);
+      setIgnitionStage('idle');
+      return;
+    }
+
+    const isFreshLive = status === 'LIVE' && startedAt && (Date.now() - new Date(startedAt).getTime() < 12000);
+
+    if (isFreshLive && !hasPlayedInauguration && ignitionStage === 'idle') {
+      setHasPlayedInauguration(true);
+      triggerInauguralAnimation();
+    }
+  }, [status, startedAt]);
+
+  const triggerInauguralAnimation = (updatedStateData) => {
+    // 1. Play Web Audio API sound & start star falling sequence on event name
+    setIgnitionStage('charging');
+    playRiserAndBoom();
+
+    // 2. After 2200ms, star impacts event name -> shockwave explosion & confetti burst
+    setTimeout(() => {
+      setIgnitionStage('shockwave');
+      confetti({
+        particleCount: 180,
+        spread: 90,
+        origin: { x: 0.5, y: 0.4 } // Centered directly on event title!
+      });
+
+      // 3. After 1500ms, shockwave settles -> mount CountdownScreen & play Vending Machine Digit Roll-Up!
+      setTimeout(() => {
+        setIgnitionStage('idle');
+        if (updatedStateData) {
+          setData(updatedStateData);
+        }
+        setIsRevealing(true); // Triggers 3D Vending Machine / Slot Machine Digit Roll-Up reveal!
+
+        setTimeout(() => {
+          setIsRevealing(false);
+        }, 3600);
+      }, 1500);
+    }, 2200);
+  };
 
   // Handle admin gear click
   const handleAdminTrigger = () => {
@@ -60,41 +104,56 @@ function App() {
     setIsAdminPanelOpen(false);
   };
 
-  // Callback from LaunchScreen ignition success
-  const handleLaunchSuccess = (updatedData) => {
-    // 1. Instantly trigger confetti explosion centered on the screen
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
+  // Triggered when Admin clicks START ROUND 1 on the LaunchScreen or AdminPanel
+  const handleStartLaunch = async () => {
+    if (ignitionStage !== 'idle') return;
 
-    // 2. Trigger initial calendar page-flip reveal sequence (~3.5s)
-    setIsRevealing(true);
-    setTimeout(() => {
-      setIsRevealing(false);
-    }, 4200);
+    try {
+      setHasPlayedInauguration(true);
+      setIgnitionStage('charging');
+      playRiserAndBoom();
 
-    // Settle the background canvas back to calm ambient (sun + orbiting
-    // planets, no meteor/shockwave) now that the countdown is taking over.
-    setIgnitionStage('idle');
+      // Call startRound API concurrently
+      const apiData = await api.startRound();
 
-    // 3. Update local state immediately to avoid API poll delay visual lag
-    setData({
-      status: updatedData.status,
-      startedAt: updatedData.startedAt,
-      endsAt: updatedData.endsAt,
-      serverTime: updatedData.serverTime
-    });
+      // Phase 1: Falling Star trajectory (2200ms)
+      setTimeout(() => {
+        // Phase 2: Shockwave explosion & confetti burst (1500ms)
+        setIgnitionStage('shockwave');
+        confetti({
+          particleCount: 180,
+          spread: 90,
+          origin: { x: 0.5, y: 0.4 }
+        });
+
+        // Phase 3: Transition to CountdownScreen & start Vending Machine Digit Roll-Up!
+        setTimeout(() => {
+          setIgnitionStage('idle');
+          setData(apiData);
+          setIsRevealing(true); // Triggers slot machine / vending machine digit roll-up!
+
+          setTimeout(() => {
+            setIsRevealing(false);
+          }, 3600);
+        }, 1500);
+      }, 2200);
+    } catch (err) {
+      console.error('[IGNITION START ERROR]', err);
+      setIgnitionStage('idle');
+      setHasPlayedInauguration(false);
+    }
   };
 
   // Callback when status is altered from admin panel (start, reset, update deadline)
   const handleAdminStateChange = (updatedState) => {
-    if (updatedState.status === 'LIVE' && status === 'READY') {
-      setIsRevealing(true);
-      setTimeout(() => setIsRevealing(false), 4200);
+    if (updatedState.triggerLaunch) {
+      handleStartLaunch();
+    } else if (updatedState.status === 'LIVE') {
+      setHasPlayedInauguration(true);
+      triggerInauguralAnimation(updatedState);
+    } else {
+      setData(updatedState);
     }
-    setData(updatedState);
   };
 
   return (
@@ -108,9 +167,10 @@ function App() {
           {/* Main Content Router: Keep LaunchScreen mounted until inauguration animation completes */}
           {status === 'READY' || ignitionStage === 'charging' || ignitionStage === 'shockwave' ? (
             <LaunchScreen
-              onLaunchSuccess={handleLaunchSuccess}
               stage={ignitionStage}
               setStage={setIgnitionStage}
+              isAdminAuthenticated={isAdminAuthenticated}
+              onStartLaunch={handleStartLaunch}
             />
           ) : (
             <CountdownScreen

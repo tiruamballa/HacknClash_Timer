@@ -51,27 +51,15 @@ export function useRoundStatus() {
       return;
     }
 
-    // 3. READY status received from server poll (e.g. serverless cold start on Vercel)
+    // 3. READY status received from server
     if (newData.status === 'READY') {
-      const cached = localStorage.getItem('hnv_cached_live_state');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (parsed && parsed.status === 'LIVE' && parsed.endsAt && new Date(parsed.endsAt).getTime() > Date.now()) {
-            // Keep LIVE state on client unless an explicit RESET action occurred
-            setDataState((prev) => ({
-              ...prev,
-              status: 'LIVE',
-              startedAt: parsed.startedAt,
-              endsAt: parsed.endsAt,
-              serverTime: newData.serverTime || prev.serverTime,
-            }));
-            return;
-          }
-        } catch (e) {}
-      }
       localStorage.removeItem('hnv_cached_live_state');
-      setDataState(newData);
+      setDataState({
+        status: 'READY',
+        startedAt: null,
+        endsAt: newData.endsAt || null,
+        serverTime: newData.serverTime || null,
+      });
     }
   }, []);
 

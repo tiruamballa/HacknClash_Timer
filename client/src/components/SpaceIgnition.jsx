@@ -298,96 +298,172 @@ export function SpaceIgnition({ stage }) {
         }
 
         const elapsed = Math.min((now - ignitionStartTimestamp) / 2200, 1);
-        const easeProgress = Math.pow(elapsed, 2.2);
+        const easeProgress = Math.pow(elapsed, 2.6); // Star falling trajectory curve
 
-        const startX = canvas.width * 0.08;
-        const startY = canvas.height * 0.1;
+        // Drop from top sky directly down to the center of "HACK 'N' CLASH"
+        const startX = canvas.width * 0.55;
+        const startY = -150;
         const targetX = canvas.width / 2;
-        const targetY = canvas.height / 2;
+        const targetY = canvas.height * 0.38; // Exact vertical center of HACK 'N' CLASH text
 
         const currentX = startX + (targetX - startX) * easeProgress;
         const currentY = startY + (targetY - startY) * easeProgress;
 
-        // Hyper-meteor tail
-        const meteorGrad = ctx.createLinearGradient(startX, startY, currentX, currentY);
-        meteorGrad.addColorStop(0, 'rgba(67, 56, 202, 0)');
-        meteorGrad.addColorStop(0.5, 'rgba(79, 70, 229, 0.6)');
-        meteorGrad.addColorStop(0.85, 'rgba(14, 165, 233, 0.9)');
+        ctx.save();
+
+        // 1. Massive Burning Plasma Tail
+        const tailLength = 250 + easeProgress * 200;
+        const tailAngle = Math.atan2(currentY - startY, currentX - startX);
+        const tailStartX = currentX - Math.cos(tailAngle) * tailLength;
+        const tailStartY = currentY - Math.sin(tailAngle) * tailLength;
+
+        const meteorGrad = ctx.createLinearGradient(tailStartX, tailStartY, currentX, currentY);
+        meteorGrad.addColorStop(0, 'rgba(79, 70, 229, 0)');
+        meteorGrad.addColorStop(0.35, 'rgba(79, 70, 229, 0.6)');
+        meteorGrad.addColorStop(0.7, 'rgba(14, 165, 233, 0.9)');
         meteorGrad.addColorStop(1, 'rgba(16, 185, 129, 1)');
 
-        ctx.save();
+        // Outer Fire Trail
         ctx.beginPath();
-        ctx.moveTo(startX, startY);
+        ctx.moveTo(tailStartX, tailStartY);
         ctx.lineTo(currentX, currentY);
         ctx.strokeStyle = meteorGrad;
-        ctx.lineWidth = 5 + easeProgress * 8;
+        ctx.lineWidth = 18 + easeProgress * 28;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = '#0EA5E9';
+        ctx.shadowBlur = 35;
+        ctx.stroke();
+
+        // Inner White Core Streak
+        ctx.beginPath();
+        ctx.moveTo(tailStartX, tailStartY);
+        ctx.lineTo(currentX, currentY);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 6 + easeProgress * 8;
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Hyper-meteor glowing head
+        // 2. Trailing Stardust Spark Shower
+        for (let i = 0; i < 4; i++) {
+          const offset = Math.random() * tailLength;
+          const px = currentX - Math.cos(tailAngle) * offset + (Math.random() - 0.5) * 20;
+          const py = currentY - Math.sin(tailAngle) * offset + (Math.random() - 0.5) * 20;
+          ctx.beginPath();
+          ctx.arc(px, py, Math.random() * 3 + 1, 0, Math.PI * 2);
+          ctx.fillStyle = i % 2 === 0 ? '#10B981' : '#38BDF8';
+          ctx.shadowColor = '#10B981';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+        }
+
+        // 3. Giant Radiant Star Aura (140px glow radius)
+        const headRadius = 24 + easeProgress * 28;
+        const starGlow = ctx.createRadialGradient(currentX, currentY, 0, currentX, currentY, headRadius * 3.5);
+        starGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        starGlow.addColorStop(0.25, 'rgba(16, 185, 129, 0.9)');
+        starGlow.addColorStop(0.6, 'rgba(14, 165, 233, 0.5)');
+        starGlow.addColorStop(1, 'rgba(79, 70, 229, 0)');
+        ctx.fillStyle = starGlow;
         ctx.beginPath();
-        ctx.arc(currentX, currentY, 8 + easeProgress * 10, 0, Math.PI * 2);
+        ctx.arc(currentX, currentY, headRadius * 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Bright Blinding White Core
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, headRadius, 0, Math.PI * 2);
         ctx.fillStyle = '#FFFFFF';
         ctx.shadowColor = '#10B981';
-        ctx.shadowBlur = 32;
+        ctx.shadowBlur = 45;
         ctx.fill();
+
+        // 5. Spinning 8-Point Celestial Star Beams
+        const rotationAngle = now * 0.003;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.lineWidth = 3.5;
+        const rayLen = headRadius * 2.8;
+
+        for (let r = 0; r < 4; r++) {
+          const angle = rotationAngle + (r * Math.PI) / 4;
+          ctx.beginPath();
+          ctx.moveTo(currentX - Math.cos(angle) * rayLen, currentY - Math.sin(angle) * rayLen);
+          ctx.lineTo(currentX + Math.cos(angle) * rayLen, currentY + Math.sin(angle) * rayLen);
+          ctx.stroke();
+        }
+
         ctx.restore();
       } else {
         ignitionStartTimestamp = null;
       }
 
-      // --- 5. Shockwave Blast & Debris Burst ---
+      // --- 5. Shockwave Blast & Debris Burst on Event Title ---
       if (stage === 'shockwave') {
         const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+        const centerY = canvas.height * 0.38; // Impact center on event title
 
         if (shockwaveRadius === 0) {
           shockwaveRadius = 10;
           shockwaveAlpha = 1;
 
-          for (let i = 0; i < 65; i++) {
+          for (let i = 0; i < 110; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 9 + 3;
+            const speed = Math.random() * 16 + 5;
             impactParticles.push({
               x: centerX,
               y: centerY,
               vx: Math.cos(angle) * speed,
               vy: Math.sin(angle) * speed,
-              size: Math.random() * 3.5 + 1,
+              size: Math.random() * 5 + 2,
               alpha: 1,
-              color: i % 3 === 0 ? '#4338CA' : i % 3 === 1 ? '#0EA5E9' : '#10B981'
+              color: i % 4 === 0 ? '#4F46E5' : i % 4 === 1 ? '#0EA5E9' : i % 4 === 2 ? '#10B981' : '#F59E0B'
             });
           }
         }
 
-        shockwaveRadius += 18;
-        shockwaveAlpha = Math.max(1 - shockwaveRadius / (Math.max(canvas.width, canvas.height) * 0.8), 0);
+        shockwaveRadius += 25;
+        shockwaveAlpha = Math.max(1 - shockwaveRadius / (Math.max(canvas.width, canvas.height) * 0.85), 0);
 
         ctx.save();
+        // Central Impact Blinding Flash
+        if (shockwaveRadius < 120) {
+          const flashGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 220);
+          flashGlow.addColorStop(0, `rgba(255, 255, 255, ${1 - shockwaveRadius / 120})`);
+          flashGlow.addColorStop(0.5, `rgba(16, 185, 129, ${(1 - shockwaveRadius / 120) * 0.7})`);
+          flashGlow.addColorStop(1, 'rgba(14, 165, 233, 0)');
+          ctx.fillStyle = flashGlow;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 220, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Primary shockwave ring
         ctx.beginPath();
         ctx.arc(centerX, centerY, shockwaveRadius, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(16, 185, 129, ${shockwaveAlpha})`;
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 8;
+        ctx.shadowColor = '#10B981';
+        ctx.shadowBlur = 25;
         ctx.stroke();
 
-        if (shockwaveRadius > 40) {
+        if (shockwaveRadius > 35) {
           ctx.beginPath();
-          ctx.arc(centerX, centerY, shockwaveRadius * 0.65, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(67, 56, 202, ${shockwaveAlpha * 0.8})`;
-          ctx.lineWidth = 3.5;
+          ctx.arc(centerX, centerY, shockwaveRadius * 0.7, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(14, 165, 233, ${shockwaveAlpha * 0.85})`;
+          ctx.lineWidth = 5;
           ctx.stroke();
         }
 
         impactParticles.forEach((p) => {
           p.x += p.vx;
           p.y += p.vy;
-          p.alpha -= 0.015;
+          p.alpha -= 0.016;
           if (p.alpha < 0) p.alpha = 0;
 
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx.fillStyle = p.color;
           ctx.globalAlpha = p.alpha;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 10;
           ctx.fill();
           ctx.globalAlpha = 1;
         });
@@ -408,6 +484,8 @@ export function SpaceIgnition({ stage }) {
       window.removeEventListener('resize', resizeCanvas);
     };
   }, [stage]);
+
+  const isIgniting = stage === 'charging' || stage === 'shockwave';
 
   return (
     <canvas

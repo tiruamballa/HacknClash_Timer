@@ -10,7 +10,7 @@ import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 // persists behind the countdown and ended screens. This component only owns
 // the foreground UI and drives that shared canvas via the `stage`/`setStage`
 // props passed down from App.
-export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
+export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenticated, onStartLaunch }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [muted, setMuted] = useState(getMuteState());
 
@@ -20,55 +20,10 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
     setMuteState(newState);
   };
 
-  const triggerIgnition = async () => {
+  const handleStartButtonClick = () => {
     if (stage !== 'idle') return;
-
-    setStage('charging');
-    setErrorMessage('');
-    
-    // 1. Play Web Audio API synthesizer riser & meteor rumble immediately
-    playRiserAndBoom();
-
-    // 2. Start API request concurrently
-    let apiSuccess = false;
-    let apiData = null;
-    let apiErrorMsg = '';
-
-    const apiPromise = api.startRound()
-      .then((data) => {
-        apiSuccess = true;
-        apiData = data;
-      })
-      .catch((err) => {
-        apiSuccess = false;
-        apiErrorMsg = err.message || 'Failed to start Round 1. Please try again.';
-      });
-
-    // 3. Minimum duration for Phase 1 meteor streak visual (~2200ms)
-    const meteorDelay = new Promise((resolve) => setTimeout(resolve, 2200));
-
-    try {
-      await Promise.all([apiPromise, meteorDelay]);
-
-      if (apiSuccess && apiData) {
-        // 4. API Success -> Trigger Phase 2 shockwave & screen shake stage (~1800ms)
-        setStage('shockwave');
-        
-        await new Promise((resolve) => setTimeout(resolve, 1800));
-        
-        // 5. Swap page to live countdown with flip-reveal
-        onLaunchSuccess(apiData);
-      } else {
-        throw new Error(apiErrorMsg);
-      }
-    } catch (err) {
-      console.error('[IGNITION ERROR]', err);
-      setErrorMessage(err.message || 'Network error occurred.');
-      setStage('error');
-      
-      setTimeout(() => {
-        setStage('idle');
-      }, 4000);
+    if (onStartLaunch) {
+      onStartLaunch();
     }
   };
 
@@ -127,39 +82,70 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
           </div>
         </div>
 
-        {/* Trigger Button Section */}
+        {/* Bottom Section: Show Start Button if Admin Authenticated; otherwise show Awaiting Badge */}
         <div className="w-full max-w-md flex flex-col items-center gap-3 mb-2 sm:mb-4 z-20">
-          <div className="relative">
-            {/* Pulsing Outer Glow Ring */}
-            {stage === 'idle' && !prefersReducedMotion && (
-              <div className="absolute inset-0 bg-cyber-accent/25 blur-xl rounded-full scale-110 animate-ping pointer-events-none" />
-            )}
-
-            {/* Ignition Button */}
-            <button
-              onClick={triggerIgnition}
-              disabled={stage === 'charging' || stage === 'shockwave'}
-              className={`px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-base sm:text-lg tracking-[0.18em] font-display uppercase border transition-all duration-300 shadow-2xl relative min-w-[240px] sm:min-w-[280px] ${
-                stage === 'idle'
-                  ? 'bg-cyber-accent border-cyber-accent text-white hover:bg-indigo-700 hover:scale-105 active:scale-95 cursor-pointer shadow-indigo-600/30'
-                  : stage === 'charging'
-                  ? 'bg-white border-cyber-border text-cyber-muted select-none shadow-md flex items-center justify-center gap-3'
-                  : stage === 'shockwave'
-                  ? 'bg-cyber-mint border-cyber-mint text-white select-none'
-                  : 'bg-cyber-accent border-cyber-accent text-white'
-              }`}
-            >
-              {stage === 'idle' && 'START ROUND 1'}
-              {stage === 'charging' && (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-cyber-accent" />
-                  <span>COMPILING IGNITION...</span>
-                </>
+          {isAdminAuthenticated ? (
+            <div className="relative">
+              {/* Pulsing Outer Glow Ring */}
+              {stage === 'idle' && !prefersReducedMotion && (
+                <div className="absolute inset-0 bg-cyber-accent/25 blur-xl rounded-full scale-110 animate-ping pointer-events-none" />
               )}
-              {stage === 'shockwave' && 'IGNITING LIVE SYSTEM'}
-              {stage === 'error' && 'START ROUND 1'}
-            </button>
-          </div>
+
+              {/* Ignition Button (Displayed on page after admin login) */}
+              <button
+                onClick={handleStartButtonClick}
+                disabled={stage === 'charging' || stage === 'shockwave'}
+                className={`px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-base sm:text-lg tracking-[0.18em] font-display uppercase border transition-all duration-300 shadow-2xl relative min-w-[240px] sm:min-w-[280px] ${
+                  stage === 'idle'
+                    ? 'bg-cyber-accent border-cyber-accent text-white hover:bg-indigo-700 hover:scale-105 active:scale-95 cursor-pointer shadow-indigo-600/30'
+                    : stage === 'charging'
+                    ? 'bg-white border-cyber-border text-cyber-muted select-none shadow-md flex items-center justify-center gap-3'
+                    : stage === 'shockwave'
+                    ? 'bg-cyber-mint border-cyber-mint text-white select-none'
+                    : 'bg-cyber-accent border-cyber-accent text-white'
+                }`}
+              >
+                {stage === 'idle' && 'START ROUND 1'}
+                {stage === 'charging' && (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-cyber-accent" />
+                    <span>FALLING STAR IGNITION...</span>
+                  </>
+                )}
+                {stage === 'shockwave' && 'INAUGURAL IMPACT!'}
+                {stage === 'error' && 'START ROUND 1'}
+              </button>
+            </div>
+          ) : (
+            <div className="relative flex flex-col items-center">
+              {/* Pulsing Outer Glow Ring */}
+              {!prefersReducedMotion && (
+                <div className="absolute inset-0 bg-cyber-accent/15 blur-xl rounded-full scale-125 animate-pulse pointer-events-none" />
+              )}
+
+              <div className={`px-6 py-3.5 sm:px-8 sm:py-4 rounded-full font-bold text-xs sm:text-sm tracking-[0.18em] font-mono uppercase border transition-all duration-500 shadow-xl relative backdrop-blur-md flex items-center gap-3 ${
+                stage === 'charging'
+                  ? 'bg-cyber-ink/80 border-cyber-accent text-cyber-accent scale-105 shadow-cyber-accent/30'
+                  : stage === 'shockwave'
+                  ? 'bg-cyber-mint border-cyber-mint text-white scale-110 shadow-emerald-500/40'
+                  : 'bg-white/85 border-cyber-border text-cyber-ink shadow-md'
+              }`}>
+                {stage === 'charging' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-cyber-accent" />
+                    <span>STAR FALLING ON EVENT NAME...</span>
+                  </>
+                ) : stage === 'shockwave' ? (
+                  <span>INAUGURAL CELESTIAL IMPACT!</span>
+                ) : (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                    <span>AWAITING INAUGURAL START</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Error message handling */}
           {errorMessage && (
@@ -168,8 +154,8 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
             </div>
           )}
 
-          <div className="text-cyber-muted text-[10px] tracking-widest font-mono uppercase">
-            Inaugural Launch Portal &bull; SRKREC CSI
+          <div className="text-cyber-muted text-[10px] sm:text-xs tracking-widest font-mono uppercase text-center mt-1">
+            Inaugural Launch Portal &bull; Department of IT &bull; SRKREC CSI
           </div>
         </div>
       </motion.div>
