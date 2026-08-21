@@ -52,7 +52,7 @@ export function CountdownTimer({ secondsRemaining, isRevealing = false }) {
     <motion.div
       animate={!prefersReducedMotion && pulse ? { scale: 1.025 } : { scale: 1 }}
       transition={{ type: 'spring', stiffness: 350, damping: 15 }}
-      className={`relative p-6 sm:p-10 bg-cyber-card/90 backdrop-blur-md rounded-2xl border ${borderAccentClass} shadow-xl max-w-2xl mx-auto flex flex-col items-center gap-6`}
+      className={`relative p-3 sm:p-8 md:p-10 bg-cyber-card/90 backdrop-blur-md rounded-2xl border ${borderAccentClass} shadow-xl max-w-2xl w-full mx-auto flex flex-col items-center gap-4 sm:gap-6`}
     >
       {/* Header Live / Urgency Badge */}
       <div className={`px-3 py-1 rounded-full border text-[10px] font-bold tracking-widest uppercase font-mono ${badgeColor}`}>
@@ -62,7 +62,7 @@ export function CountdownTimer({ secondsRemaining, isRevealing = false }) {
       </div>
 
       {/* 3D Calendar Page-Flip Cards Layout */}
-      <div className="flex items-center gap-2 sm:gap-5 md:gap-6">
+      <div className="flex items-center justify-center gap-1 sm:gap-4 md:gap-6 w-full overflow-x-auto py-1">
         <FlipDigit 
           value={days} 
           label="Days" 

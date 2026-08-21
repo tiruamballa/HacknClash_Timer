@@ -77,7 +77,7 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   return (
-    <div className="relative h-screen max-h-screen overflow-hidden">
+    <div className="relative min-h-screen w-full overflow-y-auto overflow-x-hidden">
       <motion.div
         animate={stage === 'shockwave' && !prefersReducedMotion ? {
           x: [0, -15, 15, -10, 10, -5, 5, 0],
@@ -85,7 +85,7 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
           rotate: [0, -1.2, 1.2, -0.6, 0.6, 0, 0, 0]
         } : {}}
         transition={{ duration: 1.0, ease: 'easeInOut' }}
-        className={`h-screen max-h-screen flex flex-col justify-between items-center py-3 sm:py-4 px-4 relative overflow-hidden transition-all duration-700 ${
+        className={`min-h-screen w-full flex flex-col justify-between items-center py-2 sm:py-4 px-2 sm:px-4 relative transition-all duration-700 ${
           stage === 'charging' ? 'bg-cyber-ink/30 backdrop-blur-[2px]' : 'bg-transparent'
         }`}
       >

@@ -142,7 +142,7 @@ export function FlipDigit({
     <div className="flex flex-col items-center select-none">
       {/* 3D Flip Card Container */}
       <div 
-        className={`relative w-14 sm:w-20 md:w-24 h-18 sm:h-26 md:h-28 bg-[#101012] border-2 rounded-xl shadow-2xl overflow-hidden ${borderAccentClass}`}
+        className={`relative w-12 sm:w-20 md:w-24 h-16 sm:h-26 md:h-28 bg-[#101012] border sm:border-2 rounded-lg sm:rounded-xl shadow-xl sm:shadow-2xl overflow-hidden ${borderAccentClass}`}
         style={{ perspective: '400px' }}
       >
         {/* Ambient background gradient */}
@@ -151,7 +151,7 @@ export function FlipDigit({
         {/* 1. TOP STATIC HALF (Back layer: shows next digit top during flip, current digit top when idle) */}
         <div className="relative w-full h-[50%] overflow-hidden bg-[#141417] border-b border-black/60">
           <div className="absolute top-0 left-0 right-0 h-[200%] flex items-center justify-center">
-            <span className={`text-3xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
+            <span className={`text-2xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
               {topBackDigit}
             </span>
           </div>
@@ -160,7 +160,7 @@ export function FlipDigit({
         {/* 2. BOTTOM STATIC HALF (Back layer: shows current digit bottom until covered) */}
         <div className="relative w-full h-[50%] overflow-hidden bg-[#101012]">
           <div className="absolute bottom-0 left-0 right-0 h-[200%] flex items-center justify-center">
-            <span className={`text-3xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
+            <span className={`text-2xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
               {bottomBackDigit}
             </span>
           </div>
@@ -178,7 +178,7 @@ export function FlipDigit({
             }}
           >
             <div className="absolute top-0 left-0 right-0 h-[200%] flex items-center justify-center">
-              <span className={`text-3xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
+              <span className={`text-2xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
                 {currentDigit}
               </span>
             </div>
@@ -202,7 +202,7 @@ export function FlipDigit({
             }}
           >
             <div className="absolute bottom-0 left-0 right-0 h-[200%] flex items-center justify-center">
-              <span className={`text-3xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
+              <span className={`text-2xl sm:text-5xl md:text-6xl font-bold font-mono tracking-tight leading-none ${textAccentClass}`}>
                 {nextDigit}
               </span>
             </div>

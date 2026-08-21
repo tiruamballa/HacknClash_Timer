@@ -24,106 +24,82 @@ export function EventBranding({ size = 'large' }) {
         border border-cyber-border
         shadow-lg sm:shadow-xl">
 
-        {/* Three Logos Layout */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-5">
+        {/* Three Logos Layout (Always single horizontal row on all devices) */}
+        <div className="w-full flex flex-row items-center justify-between gap-1.5 sm:gap-5">
 
           {/* IIC - LEFT */}
-          <div className="flex justify-center sm:justify-start">
-
-            <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-18 md:w-18
-              rounded-xl sm:rounded-2xl
+          <div className="flex items-center justify-start flex-shrink-0">
+            <div className="h-10 w-10 sm:h-16 sm:w-16 md:h-18 md:w-18
+              rounded-lg sm:rounded-2xl
               overflow-hidden
               border border-cyber-border
-              shadow-md
+              shadow-sm sm:shadow-md
               flex items-center justify-center
               bg-white
-              p-2
-              transition-all duration-300
-              hover:scale-105">
-
+              p-1 sm:p-2
+              transition-all duration-300">
               <img
                 src={iicLogo}
                 alt="Institution's Innovation Council Logo"
                 className="h-full w-full object-contain"
               />
-
             </div>
-
           </div>
 
-
-          {/* SRKR - CENTER (ENLARGED LOGO + TEXT BESIDE IT) */}
-          <div className="flex justify-center items-center">
-
-            <div className="flex flex-row items-center gap-3 sm:gap-3.5 bg-cyber-accent/5 px-3.5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-cyber-accent/15">
-
-              {/* Increased Size College Logo */}
-              <div className="h-18 w-18 sm:h-22 sm:w-22 md:h-24 md:w-24
-                rounded-xl sm:rounded-2xl
+          {/* SRKR - CENTER (COLLEGE LOGO + TEXT) */}
+          <div className="flex justify-center items-center flex-1 min-w-0">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-3.5 bg-cyber-accent/5 px-2 sm:px-3.5 py-1 sm:py-2.5 rounded-lg sm:rounded-2xl border border-cyber-accent/15 max-w-full overflow-hidden">
+              {/* College Logo */}
+              <div className="h-10 w-10 sm:h-18 sm:w-18 md:h-22 md:w-22
+                rounded-lg sm:rounded-2xl
                 overflow-hidden
-                border-2 border-cyber-accent/30
-                shadow-md sm:shadow-lg
+                border sm:border-2 border-cyber-accent/30
+                shadow-sm sm:shadow-lg
                 flex items-center justify-center
                 bg-white
-                p-1.5
-                ring-2 sm:ring-4 ring-cyber-accent/10
-                transition-all duration-300
-                hover:scale-105
+                p-0.5 sm:p-1.5
+                ring-1 sm:ring-4 ring-cyber-accent/10
                 flex-shrink-0">
-
                 <img
                   src={srkrLogo}
                   alt="SRKR Engineering College Logo"
-                  className="h-full w-full object-contain rounded-lg sm:rounded-xl"
+                  className="h-full w-full object-contain rounded sm:rounded-xl"
                 />
-
               </div>
 
               {/* Text Beside College Logo */}
-              <div className="text-left select-none space-y-0.5">
-
-                <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wider font-display text-cyber-ink leading-tight">
+              <div className="text-left select-none min-w-0">
+                <h2 className="text-xs sm:text-xl md:text-2xl font-extrabold tracking-wide font-display text-cyber-ink leading-tight truncate">
                   SRKR
                 </h2>
-
-                <p className="text-[11px] sm:text-xs md:text-sm font-bold text-cyber-accent tracking-wide uppercase">
+                <p className="text-[8px] sm:text-xs md:text-sm font-bold text-cyber-accent tracking-wide uppercase truncate">
                   ENGINEERING COLLEGE
                 </p>
-
-                <p className="text-[9px] sm:text-[11px] text-cyber-muted font-medium font-sans">
+                <p className="hidden sm:block text-[9px] sm:text-[11px] text-cyber-muted font-medium font-sans truncate">
                   Sagi Rama Krishnam Raju Engineering College
                 </p>
-
               </div>
-
             </div>
-
           </div>
 
-
           {/* CSI - RIGHT */}
-          <div className="flex justify-center sm:justify-end">
-
-            <div className="h-18 w-18 sm:h-22 sm:w-22 md:h-24 md:w-24
-              rounded-xl sm:rounded-2xl
+          <div className="flex items-center justify-end flex-shrink-0">
+            <div className="h-10 w-10 sm:h-18 sm:w-18 md:h-22 md:w-22
+              rounded-lg sm:rounded-2xl
               overflow-hidden
-              border-2 border-cyber-border
-              shadow-md sm:shadow-lg
+              border sm:border-2 border-cyber-border
+              shadow-sm sm:shadow-lg
               flex items-center justify-center
               bg-white
-              p-1.5
-              ring-2 ring-cyber-accent/10
-              transition-all duration-300
-              hover:scale-105">
-
+              p-0.5 sm:p-1.5
+              ring-1 sm:ring-2 ring-cyber-accent/10
+              transition-all duration-300">
               <img
                 src={csiLogo}
                 alt="Computer Society of India Logo"
-                className="h-full w-full object-contain scale-110 sm:scale-125"
+                className="h-full w-full object-contain scale-105 sm:scale-125"
               />
-
             </div>
-
           </div>
 
         </div>

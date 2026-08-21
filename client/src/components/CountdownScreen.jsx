@@ -13,7 +13,7 @@ export function CountdownScreen({
   const isEnded = status === 'ENDED' || secondsRemaining <= 0;
 
   return (
-    <div className="h-screen max-h-screen flex flex-col justify-between items-center py-3 sm:py-4 px-4 relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col justify-between items-center py-2 sm:py-4 px-2 sm:px-4 relative overflow-y-auto overflow-x-hidden">
 
       {/* Offline Status indicator banner */}
       {isOffline && (
