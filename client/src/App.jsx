@@ -105,8 +105,8 @@ function App() {
       <SpaceIgnition stage={ignitionStage} />
 
         <div className="relative min-h-screen">
-          {/* Main Content Router */}
-          {status === 'READY' ? (
+          {/* Main Content Router: Keep LaunchScreen mounted until inauguration animation completes */}
+          {status === 'READY' || ignitionStage === 'charging' || ignitionStage === 'shockwave' ? (
             <LaunchScreen
               onLaunchSuccess={handleLaunchSuccess}
               stage={ignitionStage}

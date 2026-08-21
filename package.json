@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev": "chmod -R +x node_modules/.bin server/node_modules/.bin client/node_modules/.bin 2>/dev/null; concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "start": "node server/server.js",
     "build:client": "npm run build --prefix client",
     "build": "cd client && npm install && npm run build",

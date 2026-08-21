@@ -73,15 +73,14 @@ async function writeAuditLog(action, operator = 'SYSTEM') {
   }
 }
 
-// Universal Cloud KV configuration with automatic zero-config cloud fallback
+// Universal Cloud KV configuration with automatic cloud fallback if configured
 const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const FALLBACK_KV_URL = 'https://kvdb.io/6n9fE7Yc63XpQy3bK9rN2m/hacknclash_state';
 
 // In-process global memory cache for serverless container warm state
 let memoryStateCache = null;
 
-// Helper to read state safely (Cloud KV -> Cloud Fallback -> Local FS -> Memory fallback)
+// Helper to read state safely (Cloud KV -> Local FS -> Memory fallback)
 async function readState() {
   const defaultState = {
     startedAt: memoryStateCache ? memoryStateCache.startedAt : null,
@@ -107,28 +106,14 @@ async function readState() {
     }
   }
 
-  // 2. Fallback to Cloud KVDB (zero-config multi-device cloud persistence)
-  try {
-    const res = await fetch(FALLBACK_KV_URL);
-    if (res.ok) {
-      const data = await res.json();
-      if (data && (data.startedAt || data.endsAt)) {
-        memoryStateCache = data;
-        return { ...defaultState, ...data };
-      }
-    }
-  } catch (err) {
-    // Ignore fallback network error
-  }
-
-  // 3. Fallback to reading from local filesystem / container cache
+  // 2. Fallback to reading from local filesystem / container cache
   try {
     const content = await fs.readFile(DB_PATH, 'utf8');
     const parsed = JSON.parse(content);
-    if (parsed && parsed.startedAt) {
+    if (parsed) {
       memoryStateCache = parsed;
+      return { ...defaultState, ...parsed };
     }
-    return { ...defaultState, ...parsed };
   } catch (err) {
     // If file doesn't exist, try initializing DB file
     try {
@@ -136,11 +121,12 @@ async function readState() {
     } catch (writeErr) {
       // Ignore write errors in read-only environment
     }
-    return defaultState;
   }
+
+  return defaultState;
 }
 
-// Helper to mutate state atomically across Cloud KV, Cloud Fallback, memory, and local FS
+// Helper to mutate state atomically across Cloud KV, memory, and local FS
 async function mutateState(updater, action, operator) {
   return dbMutex.enqueue(async () => {
     const state = await readState();
@@ -163,18 +149,7 @@ async function mutateState(updater, action, operator) {
       }
     }
 
-    // 2. Persist to Cloud KVDB fallback
-    try {
-      await fetch(FALLBACK_KV_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedState),
-      });
-    } catch (err) {
-      console.warn('[FALLBACK KV WRITE WARNING]', err.message);
-    }
-
-    // 3. Persist to local file cache
+    // 2. Persist to local file cache
     try {
       await fs.writeFile(DB_PATH, JSON.stringify(updatedState, null, 2), 'utf8');
       if (action) {
