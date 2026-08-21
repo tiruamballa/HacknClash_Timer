@@ -337,8 +337,8 @@ app.get('/api/round/events', async (req, res) => {
   });
 });
 
-// Public start round action (Inauguration screen clicks this)
-app.post('/api/round/start', async (req, res) => {
+// Authenticated start round action (Requires admin passcode authentication)
+app.post('/api/round/start', authenticateAdmin, async (req, res) => {
   try {
     const state = await readState();
     const now = new Date();

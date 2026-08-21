@@ -111,6 +111,8 @@ function App() {
               onLaunchSuccess={handleLaunchSuccess}
               stage={ignitionStage}
               setStage={setIgnitionStage}
+              isAdminAuthenticated={isAdminAuthenticated}
+              onRequireLogin={() => setIsLoginOpen(true)}
             />
           ) : (
             <CountdownScreen

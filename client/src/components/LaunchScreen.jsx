@@ -3,14 +3,14 @@ import { motion } from 'motion/react';
 import { api } from '../services/api';
 import { playRiserAndBoom, getMuteState, setMuteState } from '../utils/audio';
 import { EventBranding } from './EventBranding';
-import { Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Volume2, VolumeX, Loader2, Lock } from 'lucide-react';
 
 // Note: the space/solar-system canvas itself is mounted once at the App level
 // (see App.jsx -> <SpaceIgnition stage={ignitionStage} />) so the same scene
 // persists behind the countdown and ended screens. This component only owns
 // the foreground UI and drives that shared canvas via the `stage`/`setStage`
 // props passed down from App.
-export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
+export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenticated = false, onRequireLogin }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [muted, setMuted] = useState(getMuteState());
 
@@ -18,6 +18,14 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
     const newState = !muted;
     setMuted(newState);
     setMuteState(newState);
+  };
+
+  const handleStartClick = () => {
+    if (!isAdminAuthenticated) {
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
+    triggerIgnition();
   };
 
   const triggerIgnition = async () => {
@@ -137,7 +145,7 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
 
             {/* Ignition Button */}
             <button
-              onClick={triggerIgnition}
+              onClick={handleStartClick}
               disabled={stage === 'charging' || stage === 'shockwave'}
               className={`px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-base sm:text-lg tracking-[0.18em] font-display uppercase border transition-all duration-300 shadow-2xl relative min-w-[240px] sm:min-w-[280px] ${
                 stage === 'idle'
@@ -149,7 +157,16 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage }) {
                   : 'bg-cyber-accent border-cyber-accent text-white'
               }`}
             >
-              {stage === 'idle' && 'START ROUND 1'}
+              {stage === 'idle' && (
+                isAdminAuthenticated ? (
+                  'START ROUND 1'
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Lock className="w-4 h-4 text-amber-300" />
+                    <span>LOGIN TO START</span>
+                  </span>
+                )
+              )}
               {stage === 'charging' && (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-cyber-accent" />
