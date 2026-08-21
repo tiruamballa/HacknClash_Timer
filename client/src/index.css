@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cyber-bg text-cyber-ink font-sans antialiased overflow-x-hidden selection:bg-indigo-500/20 selection:text-cyber-accent;
+  }
+}
+
+/* Soft brand-colored glow effects for headline text on light surfaces */
+.glow-text {
+  text-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 8px 24px rgba(67, 56, 202, 0.18);
+}
+
+.glow-text-live {
+  text-shadow: 0 8px 24px rgba(225, 29, 72, 0.18);
+}
+
+.glow-text-ended {
+  text-shadow: 0 8px 24px rgba(217, 119, 6, 0.18);
+}
+
+/* Gentle elevated containers */
+.glow-box {
+  box-shadow: 0 12px 32px -8px rgba(67, 56, 202, 0.12), 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.glow-box-live {
+  box-shadow: 0 12px 32px -8px rgba(225, 29, 72, 0.14), 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.glow-box-ended {
+  box-shadow: 0 12px 32px -8px rgba(217, 119, 6, 0.14), 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* Gradient text used for the hero title */
+.brand-gradient-text {
+  background: linear-gradient(100deg, #4338CA 0%, #4F46E5 35%, #0EA5E9 75%, #10B981 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Keyframe for typing blinking cursor */
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.cursor-blink::after {
+  content: '|';
+  animation: blink 1s step-start infinite;
+  @apply text-cyber-accent font-bold ml-0.5;
+}
+
+/* Custom Scrollbars (light theme) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #EAF0FB;
+}
+::-webkit-scrollbar-thumb {
+  background: #C7D2E8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A5B4D9;
+}
