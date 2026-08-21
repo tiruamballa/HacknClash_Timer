@@ -29,11 +29,11 @@ export function EventBranding() {
           <div className="flex-1 flex flex-row items-center justify-center gap-1.5 sm:gap-3 bg-cyber-accent/5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-xl border border-cyber-accent/15 min-w-0 overflow-hidden">
             
             {/* College Logo */}
-            <div className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border border-cyber-accent/30 shadow-sm flex items-center justify-center bg-white p-1">
+            <div className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border border-cyber-accent/30 shadow-sm flex items-center justify-center bg-white p-0">
               <img
                 src={srkrLogo}
                 alt="SRKR Engineering College Logo"
-                className="max-w-full max-h-full w-auto h-auto object-contain rounded"
+                className="w-full h-full object-cover scale-110"
               />
             </div>
 
@@ -53,11 +53,11 @@ export function EventBranding() {
           </div>
 
           {/* CSI LOGO - RIGHT */}
-          <div className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border border-cyber-border shadow-sm flex items-center justify-center bg-white p-1">
+          <div className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border border-cyber-border shadow-sm flex items-center justify-center bg-white p-0">
             <img
               src={csiLogo}
               alt="Computer Society of India Logo"
-              className="max-w-full max-h-full w-auto h-auto object-contain"
+              className="w-full h-full object-cover scale-120"
             />
           </div>
 
