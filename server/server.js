@@ -265,6 +265,39 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
+// In-memory active SSE client connections for instant multi-device real-time sync
+const sseClients = new Set();
+
+function broadcastStateChange(updatedState) {
+  const now = new Date();
+  const status = computeStatus(updatedState, now);
+  const payload = JSON.stringify({
+    status,
+    startedAt: updatedState.startedAt,
+    endsAt: updatedState.endsAt,
+    serverTime: now.toISOString(),
+  });
+
+  for (const clientRes of sseClients) {
+    try {
+      clientRes.write(`data: ${payload}\n\n`);
+    } catch (err) {
+      sseClients.delete(clientRes);
+    }
+  }
+}
+
+// 15-second heartbeat interval to prevent SSE connection timeouts across reverse proxies & browsers
+setInterval(() => {
+  for (const clientRes of sseClients) {
+    try {
+      clientRes.write(': keepalive\n\n');
+    } catch (err) {
+      sseClients.delete(clientRes);
+    }
+  }
+}, 15000);
+
 // Public status endpoint
 app.get('/api/round/status', async (req, res) => {
   try {
@@ -282,6 +315,37 @@ app.get('/api/round/status', async (req, res) => {
     console.error('Error fetching round status:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Real-time Server-Sent Events (SSE) endpoint for instant multi-device sync
+app.get('/api/round/events', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  // Send current live state immediately upon connection
+  try {
+    const state = await readState();
+    const now = new Date();
+    const status = computeStatus(state, now);
+    const payload = JSON.stringify({
+      status,
+      startedAt: state.startedAt,
+      endsAt: state.endsAt,
+      serverTime: now.toISOString(),
+    });
+    res.write(`data: ${payload}\n\n`);
+  } catch (err) {
+    console.error('Error sending initial SSE state:', err);
+  }
+
+  sseClients.add(res);
+
+  req.on('close', () => {
+    sseClients.delete(res);
+  });
 });
 
 // Public start round action (Inauguration screen clicks this)
@@ -305,6 +369,9 @@ app.post('/api/round/start', async (req, res) => {
       'START_ROUND_1',
       'GUEST_INAUTURATION'
     );
+
+    // Broadcast instant real-time update to all connected guest & admin screens
+    broadcastStateChange(updated);
 
     res.json({
       status: 'LIVE',
@@ -362,6 +429,9 @@ app.post('/api/admin/reset', authenticateAdmin, async (req, res) => {
       'ADMIN'
     );
 
+    // Broadcast instant real-time reset to all connected screens
+    broadcastStateChange(updated);
+
     res.json({
       status: 'READY',
       startedAt: updated.startedAt,
@@ -401,6 +471,9 @@ app.post('/api/admin/set-end-time', authenticateAdmin, async (req, res) => {
       `SET_DEADLINE: ${dateObj.toISOString()}`,
       'ADMIN'
     );
+
+    // Broadcast deadline change instantly
+    broadcastStateChange(updated);
 
     res.json({
       status: computeStatus(updated, new Date()),

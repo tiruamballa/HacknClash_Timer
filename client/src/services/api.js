@@ -103,6 +103,13 @@ export const api = {
   },
 
   /**
+   * Returns the URL for Server-Sent Events real-time stream.
+   */
+  getEventsUrl() {
+    return `${API_BASE}/api/round/events`;
+  },
+
+  /**
    * Clears the admin token from local storage.
    */
   logout() {

@@ -42,30 +42,12 @@ export function useRoundStatus() {
       setIsOffline(false);
       backoffRef.current = 1000; // Reset backoff on successful API contact
 
-      if (response.status === 'LIVE') {
-        updateData(response);
-      } else if (response.status === 'READY') {
-        const cached = localStorage.getItem('hnv_cached_live_state');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed && parsed.status === 'LIVE' && parsed.endsAt && new Date(parsed.endsAt).getTime() > Date.now()) {
-              updateData({ ...response, status: 'LIVE', startedAt: parsed.startedAt, endsAt: parsed.endsAt });
-            } else {
-              localStorage.removeItem('hnv_cached_live_state');
-              updateData(response);
-            }
-          } catch (e) {
-            updateData(response);
-          }
-        } else {
-          updateData(response);
-        }
-      } else {
+      // Server status is authoritative!
+      if (response.status === 'READY') {
         localStorage.removeItem('hnv_cached_live_state');
-        updateData(response);
       }
-      
+      updateData(response);
+
       // Schedule next standard poll
       schedulePoll(DEFAULT_POLL_INTERVAL);
     } catch (err) {
@@ -88,6 +70,43 @@ export function useRoundStatus() {
       fetchStatus(true);
     }, ms);
   };
+
+  // Real-time Server-Sent Events (SSE) Subscription
+  useEffect(() => {
+    let eventSource = null;
+    try {
+      const sseUrl = api.getEventsUrl();
+      eventSource = new EventSource(sseUrl);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+          if (parsed && parsed.status) {
+            setError(null);
+            setIsOffline(false);
+            if (parsed.status === 'READY') {
+              localStorage.removeItem('hnv_cached_live_state');
+            }
+            updateData(parsed);
+          }
+        } catch (e) {
+          // Keepalive comments or non-JSON messages
+        }
+      };
+
+      eventSource.onerror = () => {
+        // Fallback polling will handle updates seamlessly if SSE disconnects
+      };
+    } catch (e) {
+      console.warn('[SSE] EventSource unavailable:', e);
+    }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [updateData]);
 
   useEffect(() => {
     fetchStatus();
