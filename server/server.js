@@ -87,18 +87,29 @@ async function readState() {
     endsAt: memoryStateCache ? (memoryStateCache.endsAt || DEFAULT_ENDS_AT) : DEFAULT_ENDS_AT,
   };
 
-  // 1. Try reading from primary Cloud KV if configured
+  // 1. Try reading from primary Cloud KV if configured (Vercel KV / Upstash Redis)
   if (KV_URL && KV_TOKEN) {
     try {
       const res = await fetch(`${KV_URL}/get/hacknclash_state`, {
         headers: { Authorization: `Bearer ${KV_TOKEN}` }
       });
       const data = await res.json();
-      if (data && data.result) {
-        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-        if (parsed) {
+      if (data && data.result !== null && data.result !== undefined) {
+        let parsed = data.result;
+        // Robustly unroll any nested stringified JSON values from Redis
+        while (typeof parsed === 'string') {
+          try {
+            parsed = JSON.parse(parsed);
+          } catch (e) {
+            break;
+          }
+        }
+        if (parsed && typeof parsed === 'object') {
           memoryStateCache = parsed;
-          return { ...defaultState, ...parsed };
+          return {
+            startedAt: parsed.startedAt || null,
+            endsAt: parsed.endsAt || DEFAULT_ENDS_AT,
+          };
         }
       }
     } catch (err) {
@@ -110,7 +121,7 @@ async function readState() {
   try {
     const content = await fs.readFile(DB_PATH, 'utf8');
     const parsed = JSON.parse(content);
-    if (parsed) {
+    if (parsed && typeof parsed === 'object') {
       memoryStateCache = parsed;
       return { ...defaultState, ...parsed };
     }
@@ -120,7 +131,7 @@ async function readState() {
       const templatePath = path.join(__dirname, 'data', 'db.json');
       const content = await fs.readFile(templatePath, 'utf8');
       const parsed = JSON.parse(content);
-      if (parsed) {
+      if (parsed && typeof parsed === 'object') {
         memoryStateCache = parsed;
         return { ...defaultState, ...parsed };
       }
@@ -146,16 +157,17 @@ async function mutateState(updater, action, operator) {
     const updatedState = updater(state);
     memoryStateCache = updatedState;
 
-    // 1. Persist to primary Cloud KV if configured
+    // 1. Persist to primary Cloud KV if configured (Vercel KV / Upstash Redis)
     if (KV_URL && KV_TOKEN) {
       try {
+        const payloadStr = JSON.stringify(updatedState);
         await fetch(`${KV_URL}/set/hacknclash_state`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${KV_TOKEN}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(JSON.stringify(updatedState)),
+          body: JSON.stringify(payloadStr),
         });
       } catch (err) {
         console.error('[PRIMARY KV WRITE ERROR]', err.message);
