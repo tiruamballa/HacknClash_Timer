@@ -104,13 +104,6 @@ function App() {
           once here so it never resets or flickers as screens change. */}
       <SpaceIgnition stage={ignitionStage} />
 
-      {loading && status === 'READY' ? (
-        // Loading Shield
-        <div className="min-h-screen flex flex-col justify-center items-center gap-4 text-cyber-muted font-mono text-sm select-none">
-          <Loader2 className="w-8 h-8 animate-spin text-cyber-accent" />
-          <span>SYNCHRONIZING SYSTEM CLOCKS...</span>
-        </div>
-      ) : (
         <div className="relative min-h-screen">
           {/* Main Content Router */}
           {status === 'READY' ? (
@@ -160,7 +153,6 @@ function App() {
             onLogout={handleLogout}
           />
         </div>
-      )}
     </ErrorBoundary>
   );
 }
