@@ -73,32 +73,80 @@ async function writeAuditLog(action, operator = 'SYSTEM') {
   }
 }
 
-// Helper to read state safely
+// Universal Cloud KV (Vercel KV / Upstash Redis REST) configuration
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// Helper to read state safely (Cloud KV -> Local FS fallback)
 async function readState() {
+  const defaultState = {
+    startedAt: null,
+    endsAt: DEFAULT_ENDS_AT,
+  };
+
+  // 1. Try reading from Cloud KV if configured
+  if (KV_URL && KV_TOKEN) {
+    try {
+      const res = await fetch(`${KV_URL}/get/hacknclash_state`, {
+        headers: { Authorization: `Bearer ${KV_TOKEN}` }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+        return { ...defaultState, ...parsed };
+      }
+    } catch (err) {
+      console.error('[KV READ ERROR]', err.message);
+    }
+  }
+
+  // 2. Fallback to reading from local filesystem / container cache
   try {
     const content = await fs.readFile(DB_PATH, 'utf8');
-    return JSON.parse(content);
+    return { ...defaultState, ...JSON.parse(content) };
   } catch (err) {
-    // If file doesn't exist, return default state
-    const defaultState = {
-      startedAt: null,
-      endsAt: DEFAULT_ENDS_AT,
-    };
-    // Initialize DB file
-    await fs.writeFile(DB_PATH, JSON.stringify(defaultState, null, 2), 'utf8');
+    // If file doesn't exist, try initializing DB file
+    try {
+      await fs.writeFile(DB_PATH, JSON.stringify(defaultState, null, 2), 'utf8');
+    } catch (writeErr) {
+      // Ignore write errors in read-only environment
+    }
     return defaultState;
   }
 }
 
-// Helper to mutate state atomically
+// Helper to mutate state atomically across Cloud KV and local FS
 async function mutateState(updater, action, operator) {
   return dbMutex.enqueue(async () => {
     const state = await readState();
     const updatedState = updater(state);
-    await fs.writeFile(DB_PATH, JSON.stringify(updatedState, null, 2), 'utf8');
-    if (action) {
-      await writeAuditLog(action, operator);
+
+    // 1. Persist to Cloud KV if configured
+    if (KV_URL && KV_TOKEN) {
+      try {
+        await fetch(`${KV_URL}/set/hacknclash_state`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${KV_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(JSON.stringify(updatedState)),
+        });
+      } catch (err) {
+        console.error('[KV WRITE ERROR]', err.message);
+      }
     }
+
+    // 2. Persist to local file cache
+    try {
+      await fs.writeFile(DB_PATH, JSON.stringify(updatedState, null, 2), 'utf8');
+      if (action) {
+        await writeAuditLog(action, operator);
+      }
+    } catch (err) {
+      console.warn('[FS WRITE WARNING]', err.message);
+    }
+
     return updatedState;
   });
 }

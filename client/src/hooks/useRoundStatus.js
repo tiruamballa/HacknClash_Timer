@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../services/api';
 
-const DEFAULT_POLL_INTERVAL = 10000; // 10 seconds default
+const DEFAULT_POLL_INTERVAL = 3000; // 3 seconds default for instant multi-device sync
 const BACKOFF_MAX = 30000; // 30 seconds max backoff limit
 
 export function useRoundStatus() {
