@@ -2,12 +2,22 @@
   "name": "hacknclash-root",
   "version": "1.0.0",
   "description": "Root workspace runner for HACK 'N' CLASH",
+  "type": "module",
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "start": "node server/server.js",
     "build:client": "npm run build --prefix client",
-    "build": "npm run build:client"
+    "build": "cd client && npm install && npm run build",
+    "vercel-build": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
