@@ -25,8 +25,8 @@ if (missingEnv.length > 0) {
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'hacknclash_default_jwt_secret_key_2026';
-// Default hash for password 'hacknclash2026' fallback if ADMIN_PASSWORD_HASH is not set yet
-const DEFAULT_HASH = '$2a$10$wT5gZ6A6dI.UaD1gH/xLDe3G9v8N9oQ5rW5F7e8r9t0y1u2i3o4p5';
+// Default hash for password 'tiru1002' fallback if ADMIN_PASSWORD_HASH is not set yet
+const DEFAULT_HASH = '$2a$10$icsKVaKIQ.boXvF0p84Tg.tvIEDJ6xqIlUmcR8TJeKYr8rToy9YA2';
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || DEFAULT_HASH;
 const DEFAULT_ENDS_AT = process.env.DEFAULT_ENDS_AT || '2026-08-30T23:59:59+05:30';
 
