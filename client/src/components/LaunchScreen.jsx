@@ -56,39 +56,39 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenti
         </div>
 
         {/* Header Organizer Info */}
-        <header className="w-full flex justify-center mt-1 sm:mt-2 select-none px-2">
+        <header className="w-full flex justify-center mt-1 select-none px-2">
           <EventBranding />
         </header>
 
         {/* Hero Display Elements */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center max-w-4xl px-4 select-none my-auto py-2">
+        <div className="flex-1 flex flex-col items-center justify-center text-center max-w-4xl px-4 select-none my-auto py-1 space-y-2 sm:space-y-3">
           {/* Main Event Title */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight font-display brand-gradient-text glow-text mb-2 select-none">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight font-display brand-gradient-text glow-text select-none">
             HACK 'N' CLASH
           </h1>
           
           {/* Round Tagline */}
-          <p className="text-xs sm:text-base tracking-[0.3em] font-semibold text-cyber-muted uppercase font-sans mb-4">
+          <p className="text-xs sm:text-base md:text-lg tracking-[0.3em] font-bold text-cyber-muted uppercase font-sans">
             ROUND 1: OPEN BOOK &bull; ONLINE
           </p>
 
           {/* Short Loop Tagline */}
-          <div className="flex items-center gap-3 text-[11px] sm:text-xs font-mono tracking-widest text-cyber-accent bg-cyber-accent/5 px-3.5 py-1.5 rounded-full border border-cyber-accent/15">
+          <div className="flex items-center gap-3 text-xs sm:text-sm font-mono tracking-widest text-cyber-accent bg-cyber-accent/10 px-4 py-1.5 rounded-full border border-cyber-accent/25 shadow-sm">
             <span>CODE</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyber-accent/50" />
+            <span className="w-2 h-2 rounded-full bg-cyber-accent" />
             <span>CLASH</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyber-accent/50" />
+            <span className="w-2 h-2 rounded-full bg-cyber-accent" />
             <span>CONQUER</span>
           </div>
         </div>
 
-        {/* Bottom Section: Show Start Button if Admin Authenticated; otherwise show Awaiting Badge */}
-        <div className="w-full max-w-md flex flex-col items-center gap-3 mb-2 sm:mb-4 z-20">
+        {/* Bottom Section: Show Start Button if Admin Authenticated; otherwise show Vibrant Highlighted Awaiting Badge */}
+        <div className="w-full max-w-md flex flex-col items-center gap-2 mb-2 sm:mb-3 z-20">
           {isAdminAuthenticated ? (
             <div className="relative">
               {/* Pulsing Outer Glow Ring */}
               {stage === 'idle' && !prefersReducedMotion && (
-                <div className="absolute inset-0 bg-cyber-accent/25 blur-xl rounded-full scale-110 animate-ping pointer-events-none" />
+                <div className="absolute inset-0 bg-cyber-accent/30 blur-xl rounded-full scale-110 animate-ping pointer-events-none" />
               )}
 
               {/* Ignition Button (Displayed on page after admin login) */}
@@ -97,7 +97,7 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenti
                 disabled={stage === 'charging' || stage === 'shockwave'}
                 className={`px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-base sm:text-lg tracking-[0.18em] font-display uppercase border transition-all duration-300 shadow-2xl relative min-w-[240px] sm:min-w-[280px] ${
                   stage === 'idle'
-                    ? 'bg-cyber-accent border-cyber-accent text-white hover:bg-indigo-700 hover:scale-105 active:scale-95 cursor-pointer shadow-indigo-600/30'
+                    ? 'bg-cyber-accent border-cyber-accent text-white hover:bg-indigo-700 hover:scale-105 active:scale-95 cursor-pointer shadow-indigo-600/40'
                     : stage === 'charging'
                     ? 'bg-white border-cyber-border text-cyber-muted select-none shadow-md flex items-center justify-center gap-3'
                     : stage === 'shockwave'
@@ -118,17 +118,18 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenti
             </div>
           ) : (
             <div className="relative flex flex-col items-center">
-              {/* Pulsing Outer Glow Ring */}
+              {/* Pulsing Ambient Glow Ring */}
               {!prefersReducedMotion && (
-                <div className="absolute inset-0 bg-cyber-accent/15 blur-xl rounded-full scale-125 animate-pulse pointer-events-none" />
+                <div className="absolute inset-0 bg-indigo-600/35 blur-xl rounded-full scale-125 animate-pulse pointer-events-none" />
               )}
 
-              <div className={`px-6 py-3.5 sm:px-8 sm:py-4 rounded-full font-bold text-xs sm:text-sm tracking-[0.18em] font-mono uppercase border transition-all duration-500 shadow-xl relative backdrop-blur-md flex items-center gap-3 ${
+              {/* Highlighted Glowing Badge for Normal Users (Matches Start Button Color) */}
+              <div className={`px-7 py-3.5 sm:px-9 sm:py-4 rounded-full font-extrabold text-xs sm:text-sm tracking-[0.2em] font-mono uppercase border-2 transition-all duration-500 shadow-2xl relative backdrop-blur-md flex items-center gap-3 ${
                 stage === 'charging'
-                  ? 'bg-cyber-ink/80 border-cyber-accent text-cyber-accent scale-105 shadow-cyber-accent/30'
+                  ? 'bg-cyber-ink border-cyber-accent text-cyber-accent scale-105 shadow-cyber-accent/40'
                   : stage === 'shockwave'
-                  ? 'bg-cyber-mint border-cyber-mint text-white scale-110 shadow-emerald-500/40'
-                  : 'bg-white/85 border-cyber-border text-cyber-ink shadow-md'
+                  ? 'bg-cyber-mint border-cyber-mint text-white scale-110 shadow-emerald-500/50'
+                  : 'bg-gradient-to-r from-indigo-600 via-cyber-accent to-purple-600 border-indigo-300/40 text-white shadow-indigo-600/40'
               }`}>
                 {stage === 'charging' ? (
                   <>
@@ -139,7 +140,10 @@ export function LaunchScreen({ onLaunchSuccess, stage, setStage, isAdminAuthenti
                   <span>INAUGURAL CELESTIAL IMPACT!</span>
                 ) : (
                   <>
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                    <span className="relative flex h-3 w-3 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                    </span>
                     <span>AWAITING INAUGURAL START</span>
                   </>
                 )}
